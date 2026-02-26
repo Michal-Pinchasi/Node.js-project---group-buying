@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>PurchaseHub - קבוצות רכישה</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
+        th { background-color: #f2f2f2; }
+        .status-Open { color: green; font-weight: bold; }
+        .status-Closed { color: red; font-weight: bold; }
+        .id-text { font-family: monospace; font-size: 0.8em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>קבוצות רכישה - PurchaseHub</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>מזהה (ID)</th>
+                <th>שם קבוצה</th>
+                <th>תיאור מוצר</th>
+                <th>מספר לקוחות</th>
+                <th>שם היוצר</th>
+                <th>חברים בקבוצה</th>
+                <th>מחיר נמוך ביותר</th>
+                <th>סטטוס</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% groups.forEach(group => { %>
+                <tr>
+                    <td class="id-text"><%= group._id %></td>
+                    <td><a href="/groups/<%= group._id %>"><%= group.groupName %></a></td>
+                    <td><%= group.productDescription %></td>
+                    <td><%= group.customerCount %></td>
+                    <td><%= group.createdBy && group.createdBy.fullName ? group.createdBy.fullName : 'יוצר לא ידוע' %></td>
+                    <td><%= group.members.length %></td>
+                    <td><%= group.lowestPrice || 'אין הצעות' %></td>
+                    <td class="status-<%= group.status %>"><%= group.status %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+</html>

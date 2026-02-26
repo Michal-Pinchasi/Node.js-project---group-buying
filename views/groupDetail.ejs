@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>PurchaseHub - פרטי קבוצה</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: auto; }
+        .group-detail { background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .field { margin: 15px 0; }
+        .field-label { font-weight: bold; color: #333; size: 16px; }
+        .field-value { color: #666; margin-top: 5px; }
+        .status { padding: 5px 10px; border-radius: 4px; display: inline-block; }
+        .status-Open { background-color: #d4edda; color: #155724; }
+        .status-Closed { background-color: #f8d7da; color: #721c24; }
+        .section { margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; }
+        .section-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; }
+        .members-list { list-style: none; padding: 0; }
+        .members-list li { padding: 8px; background-color: #f9f9f9; margin-bottom: 5px; border-radius: 4px; }
+        .price-list { list-style: none; padding: 0; }
+        .price-item { padding: 12px; background-color: #f9f9f9; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .price-info { flex: 1; }
+        .supplier-name { font-size: 0.9em; color: #888; }
+        .button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; margin: 5px 5px 5px 0; }
+        .btn-join { background-color: #28a745; color: white; }
+        .btn-join:hover { background-color: #218838; }
+        .btn-offer { background-color: #007bff; color: white; }
+        .btn-offer:hover { background-color: #0056b3; }
+        .btn-delete { background-color: #dc3545; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-delete:hover { background-color: #c82333; }
+        .btn-back { background-color: #6c757d; color: white; }
+        .btn-back:hover { background-color: #545b62; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-group button { padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .form-group button:hover { background-color: #0056b3; }
+        .no-members { color: #999; font-style: italic; }
+        .action-section { background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="group-detail">
+            <h1><%= group.groupName %></h1>
+            
+            <div class="field">
+                <div class="field-label">מזהה הקבוצה:</div>
+                <div class="field-value"><%= group._id %></div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">תיאור המוצר:</div>
+                <div class="field-value"><%= group.productDescription %></div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">מספר לקוחות שצפויים:</div>
+                <div class="field-value"><%= group.customerCount %></div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">נפתח על ידי (יוצר הקבוצה):</div>
+                <div class="field-value"><%= group.createdBy.fullName %> (<%= group.createdBy.email %>)</div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">סטטוס:</div>
+                <div class="field-value">
+                    <span class="status status-<%= group.status %>"><%= group.status %></span>
+                </div>
+            </div>
+
+            <!-- חברים בקבוצה -->
+            <div class="section">
+                <div class="section-title">חברים בקבוצה (<%= group.members.length %>)</div>
+                <% if (group.members.length > 0) { %>
+                    <ul class="members-list">
+                        <% group.members.forEach(member => { %>
+                            <li><%= member.fullName %> (<%= member.email %>)</li>
+                        <% }) %>
+                    </ul>
+                <% } else { %>
+                    <p class="no-members">אין חברים בקבוצה עדיין</p>
+                <% } %>
+            </div>
+
+            <!-- הצעות מחיר -->
+            <div class="section">
+                <div class="section-title">הצעות מחיר</div>
+                <% if (group.priceOffers && group.priceOffers.length > 0) { %>
+                    <div class="field">
+                        <div class="field-label">המחיר הנמוך ביותר:</div>
+                        <div class="field-value"><strong><%= group.lowestPrice %> ₪</strong></div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">כל ההצעות:</div>
+                        <ul class="price-list">
+                            <% group.priceOffers.forEach(offer => { %>
+                                <li class="price-item">
+                                    <div class="price-info">
+                                        <strong><%= offer.price %> ₪</strong>
+                                        <div class="supplier-name">יבואן: <%= offer.supplierId.fullName %> (<%= offer.supplierId.email %>)</div>
+                                    </div>
+                                    <% if (user.role === 'supplier' && offer.supplierId._id.toString() === user.id) { %>
+                                        <form method="POST" action="/groups/<%= group._id %>/offer/<%= offer._id %>?_method=DELETE" style="display:inline;">
+                                            <button type="submit" class="button btn-delete">מחוק</button>
+                                        </form>
+                                    <% } %>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    </div>
+                <% } else { %>
+                    <p class="no-members">אין הצעות מחיר עדיין</p>
+                <% } %>
+            </div>
+
+            <!-- אפשרויות פעולה -->
+            <div class="action-section">
+                <h3>אפשרויות</h3>
+                
+                <% if (user.role === 'customer' && !group.members.some(m => m._id.toString() === user.id)) { %>
+                    <form method="POST" action="/groups/<%= group._id %>/join" style="display:inline;">
+                        <button type="submit" class="button btn-join">הצטרף לקבוצה</button>
+                    </form>
+                <% } %>
+
+                <% if (user.role === 'supplier' && group.status === 'Open') { %>
+                    <form method="POST" action="/groups/<%= group._id %>/offer" style="display:inline;">
+                        <div class="form-group" style="display:flex; align-items:center; gap:10px; margin-bottom:0;">
+                            <input type="number" name="price" placeholder="הזן מחיר בשקלים" min="0.01" step="0.01" required style="width:200px;">
+                            <button type="submit" class="button btn-offer">הגש הצעת מחיר</button>
+                        </div>
+                    </form>
+                <% } %>
+
+                <a href="/groups" class="button btn-back">חזרה לרשימת קבוצות</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
